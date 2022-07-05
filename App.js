@@ -24,6 +24,10 @@ export default function App() {
   // Values
   const scale = useRef(new Animated.Value(1)).current;
   const position = useRef(new Animated.Value(0)).current;
+  const rotation = position.interpolate({
+    inputRange: [-250, 250],
+    outputRange: ["-15deg", "15deg"],
+  })
   // Animations
   const onPressIn = Animated.spring(scale, {
     toValue: 0.95,
@@ -45,9 +49,16 @@ export default function App() {
         position.setValue(dx);
       },
       onPanResponderGrant: () => onPressIn.start(),
-      onPanResponderRelease: () => {
-        Animated.parallel([
-        onPressOut, goCenter]).start();
+      onPanResponderRelease: (_, { dx }) => {
+        if(dx < -320) {
+          Animated.spring(position, {toValue: -500, useNativeDriver:true}).start();
+          console.log("dismiss to the left");
+        }else if(dx > 320){
+          Animated.spring(position, {toValue: 500, useNativeDriver:true}).start();
+          console.log("dissmis to the right");
+        } else {
+          Animated.parallel([onPressOut, goCenter]).start();
+        }
       },
     })
   ).current;
@@ -57,7 +68,7 @@ export default function App() {
       <Card
         {...panResponder.panHandlers}
         style={{
-          transform: [{ scale }, { translateX: position }],
+          transform: [{ scale }, { translateX: position }, {rotateZ: rotation}],
         }}
       >
         <Ionicons name="pizza" color="#192a56" size={98} />
